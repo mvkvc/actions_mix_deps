@@ -35,6 +35,10 @@ runs:
       if: steps.cache-restore.outputs.cache-hit != 'true'
       working-directory: ${{ inputs.path }}
       shell: bash
+    - run: mix deps.compile
+      if: steps.cache-restore.outputs.cache-hit != 'true'
+      working-directory: ${{ inputs.path }}
+      shell: bash
     - uses: actions/cache/save@v3
       id: cache-save
       with:
