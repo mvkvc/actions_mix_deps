@@ -1,20 +1,20 @@
 name: mix_deps
-description: Run `mix deps.get` and cache dependencies.
+description: Runs `mix deps.get` and caches the dependencies.
 branding:
-  icon: 'arrow-down'
-  color: 'purple'
+  icon: "arrow-down"
+  color: "purple"
 
 inputs:
   erlang-version:
-    description: Erlang version to use
+    description: Erlang version to use.
     required: true
     type: string
   elixir-version:
-    description: Elixir version to use
+    description: Elixir version to use.
     required: true
     type: string
   path:
-    description: Path to the Mix project
+    description: Path to the root of the Mix project.
     required: false
     type: string
     default: .
@@ -22,8 +22,9 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/cache/restore@v3
-      id: cache-restore
+    - name: Cache
+      id: cache
+      uses: actions/cache@v3
       with:
         path: |
           ${{ inputs.path }}/_build
@@ -31,19 +32,13 @@ runs:
         key: ${{ runner.os }}-erlang-${{ inputs.erlang-version }}-elixir-${{ inputs.elixir-version }}-mix-${{ hashFiles('**/mix.lock') }}
         restore-keys: |
           ${{ runner.os }}-erlang-${{ inputs.erlang-version }}-elixir-${{ inputs.elixir-version }}-mix-
-    - run: mix deps.get
-      if: steps.cache-restore.outputs.cache-hit != 'true'
+    - name: Download dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: mix deps.get
       working-directory: ${{ inputs.path }}
       shell: bash
-    - run: mix deps.compile
-      if: steps.cache-restore.outputs.cache-hit != 'true'
+    - name: Compile dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: mix deps.compile
       working-directory: ${{ inputs.path }}
       shell: bash
-    - uses: actions/cache/save@v3
-      id: cache-save
-      with:
-        path: |
-          ${{ inputs.path }}/_build
-          ${{ inputs.path }}/deps
-        key: ${{ runner.os }}-erlang-${{ inputs.erlang-version }}-elixir-${{ inputs.elixir-version }}-mix-${{ hashFiles('**/mix.lock') }}
-      if: steps.cache-restore.outputs.cache-hit != 'true'
